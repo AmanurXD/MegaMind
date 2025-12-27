@@ -1,0 +1,12 @@
+{
+  "name": "MegaMind",
+  "version": "1.0.0",
+  "private": true,
+  "main": "megamind.js",
+  "scripts": {
+    "start": "node megamind.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
