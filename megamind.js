@@ -1,51 +1,72 @@
 const https = require('https');
 
 // ==========================================
-// 🔧 CONFIGURATION
+// 🔧 CONFIGURATION (PASTE YOUR RAW REQUEST HERE)
 // ==========================================
-const CONFIG = {
-    POST_ID: "49970418", // The ID from your URL
-    
-    // Paste your massive Cookie string here
-    COOKIE: `_ym_uid=1766852614548077944; _ym_d=1766852614; _ym_isad=2; visitorId=09fd28f7-09a6-4632-96b0-89e8e18dbb79; termsOfUseVersion=2; _gid=GA1.2.977015484.1766852621; city=99; publicDomain=megapersonals.eu; mp_screen_client=958x944; JSESSIONID=F53076E118DA1EBC21B4F61DFBB7EF9B; sid=256f96909bf2c9a9b2aa6dcbb6faba57; backURL=https%3A%2F%2Fmegapersonals.eu%2Fusers%2Fposts%2Flist; __cf_bm=desJEXeWzPu9prB3vcpBIvc0LgTbD2S1mky.MaoUmdU-1766852755.1001263-1.0.1.1-vd_kTwYWMSrpQI0chR4VZeda9wyBffaqBKqYn9_4oabcAGTHJXjT0v1kVIo0nPD7Vn20eAPpl4sx8mEPNmq.fsfPHezq__2OYtmlfpTgim8tDwTrCTbBWedx6qDs5Cal; _ga_7DGFPGNTB9=GS2.1.s1766852620$o1$g1$t1766852755$j13$l0$h0; _ga=GA1.2.1642405227.1766852621`
-};
+const RAW_REQUEST = `GET /users/posts/bump/50511057 HTTP/2
+Host: megapersonals.eu
+Cookie: _ym_uid=1773621904359197761; _ym_d=1773621904; visitorId=59efe8d4-a629-406c-a4a3-839c89aa573f; termsOfUseVersion=2; _ga_7DGFPGNTB9=GS2.1.s1773715162$o4$g0$t1773715162$j60$l0$h0; _ga=GA1.1.1379120135.1773621910; _gid=GA1.2.1473477669.1773621911; publicDomain=megapersonals.eu; mp_screen_client=1920x947; sid=d95e1e491712c0a830f78836e564714b; backURL=https%3A%2F%2Fmegapersonals.eu%2Fusers%2Fposts%2Fselect%2F50511057; _ym_isad=2; JSESSIONID=C2152B79FAC2C99A5C261485729F418C; __cf_bm=cPI677zelA2jWQMCyicgBg__MStRTcNNHOYPSSo1w2E-1773715155.1254668-1.0.1.1-CbqW30xj3QcqqGvB1fQM7Vn_UEsy9zm5N4d3rtyMY2zAwkiLd7UmOgLRUnlosxpd_rs9w3MEI0m5Z6Cm2BgOXhxL_La9RX8RwlwafpRFFCQouJprreOxffo1ndEnVtJO; _gat_gtag_UA_113349993_1=1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.9
+Accept-Encoding: gzip, deflate, br
+Sec-Gpc: 1
+Referer: https://megapersonals.eu/users/posts/select/50511057
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: same-origin
+Sec-Fetch-User: ?1
+Priority: u=0, i
+Te: trailers`;
 
-// Headers matching your capture exactly
-const HEADERS = {
-    "Host": "megapersonals.eu",
-    "Cookie": CONFIG.COOKIE,
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-    "Referer": "https://megapersonals.eu/users/posts/list",
-    "Upgrade-Insecure-Requests": "1",
-    "Sec-Ch-Ua": '"Chromium";v="143", "Not A(Brand";v="24"',
-    "Sec-Ch-Ua-Mobile": "?0",
-    "Sec-Ch-Ua-Platform": '"Windows"',
-    "Sec-Fetch-Dest": "document",
-    "Sec-Fetch-Mode": "navigate",
-    "Sec-Fetch-Site": "same-origin",
-    "Sec-Fetch-User": "?1",
-    "Priority": "u=0, i"
-};
+// ==========================================
+// ⚙️ PARSER ENGINE
+// ==========================================
+function parseRawRequest(raw) {
+    const lines = raw.trim().split(/\r?\n/);
+    const firstLine = lines.shift(); // e.g., "GET /users/posts/bump/50511057 HTTP/2"
+    const [method, path] = firstLine.split(' ');
+
+    // Extract Post ID directly from the path
+    const pathMatch = path.match(/\/bump\/(\d+)/);
+    const postId = pathMatch ? pathMatch[1] : "UNKNOWN";
+
+    const headers = {};
+    for (const line of lines) {
+        const colonIndex = line.indexOf(':');
+        if (colonIndex === -1) continue; // Skip lines without a colon
+        
+        const key = line.substring(0, colonIndex).trim();
+        const value = line.substring(colonIndex + 1).trim();
+        headers[key] = value;
+    }
+
+    const hostname = headers['Host'] || 'megapersonals.eu';
+
+    return { method, path, postId, hostname, headers };
+}
+
+// Parse the request once at startup
+const REQUEST_CONFIG = parseRawRequest(RAW_REQUEST);
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 function bumpPost() {
     return new Promise((resolve, reject) => {
         const options = {
-            hostname: 'megapersonals.eu',
-            path: `/users/posts/bump/${CONFIG.POST_ID}`,
-            method: 'GET',
-            headers: HEADERS
+            hostname: REQUEST_CONFIG.hostname,
+            path: REQUEST_CONFIG.path,
+            method: REQUEST_CONFIG.method,
+            headers: REQUEST_CONFIG.headers
         };
 
         const req = https.request(options, (res) => {
-            // We only care about headers because it's a 302 Redirect
             resolve({
                 status: res.statusCode,
                 location: res.headers.location || ""
             });
-            // We don't even need to consume body for a 302, but let's be clean
+            // We only care about the 302 location header, empty the body buffer to prevent memory leaks
             res.on('data', () => {}); 
         });
 
@@ -56,8 +77,14 @@ function bumpPost() {
 
 async function startMegaWorker() {
     console.clear();
-    console.log(`🍑 MegaPersonals Bumper - Post ${CONFIG.POST_ID}`);
+    console.log(`🍑 MegaPersonals Bumper - Post ${REQUEST_CONFIG.postId}`);
     console.log("---------------------------------------------");
+
+    if (REQUEST_CONFIG.postId === "UNKNOWN") {
+        console.log("❌ ERROR: Could not parse POST_ID from your raw request.");
+        console.log("   Make sure you copied a 'GET /users/posts/bump/...' request.");
+        process.exit(1);
+    }
 
     while (true) {
         try {
@@ -68,30 +95,23 @@ async function startMegaWorker() {
             // LOGIC GATE
             
             // CASE 1: SUCCESS
-            // The location URL contains "success_publish"
             if (res.status === 302 && res.location.includes("success_publish")) {
                 console.log("✅ SUCCESS! Bumped.");
                 console.log("   -> Sleeping for 15 minutes (Locking Phase)...");
-                
-                // Sleep 15 mins + 10 seconds buffer to be perfectly safe
-                await sleep((15 * 60 * 1000) + 10000); 
+                await sleep((15 * 60 * 1000) + 10000); // 15 mins + 10 seconds buffer
             }
             
             // CASE 2: TOO EARLY (COOLDOWN)
-            // The location URL is just back to the list
             else if (res.status === 302 && res.location.includes("/users/posts/list")) {
                 console.log("⏳ Failed (Too Early).");
                 console.log("   -> Retrying in 60 seconds to find the window...");
-                
-                // Wait 1 minute and probe again
                 await sleep(60 * 1000);
             }
             
             // CASE 3: AUTH ERROR
-            // Usually 302 to /login or a 403 Forbidden
             else if (res.location.includes("login") || res.status === 403 || res.status === 401) {
                 console.log("\n❌ FATAL: Cookies Expired or Logged Out.");
-                console.log("   -> Please update CONFIG.COOKIE.");
+                console.log("   -> Please update the RAW_REQUEST block with a fresh copy.");
                 process.exit(1);
             }
             
