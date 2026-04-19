@@ -3,22 +3,23 @@ const https = require('https');
 // ==========================================
 // 🔧 CONFIGURATION (PASTE YOUR RAW REQUEST HERE)
 // ==========================================
-const RAW_REQUEST = `GET /users/posts/bump/50707069 HTTP/2
+const RAW_REQUEST = `GET /users/posts/bump/49970418 HTTP/2
 Host: megapersonals.eu
-Cookie: _ym_uid=1773621904359197761; _ym_d=1773621904; visitorId=59efe8d4-a629-406c-a4a3-839c89aa573f; termsOfUseVersion=2; _ga_7DGFPGNTB9=GS2.1.s1773775740$o5$g1$t1773775887$j40$l0$h0; _ga=GA1.2.1379120135.1773621910; _gid=GA1.2.1473477669.1773621911; publicDomain=megapersonals.eu; mp_screen_client=1920x947; sid=d95e1e491712c0a830f78836e564714b; backURL=https%3A%2F%2Fmegapersonals.eu%2Fusers%2Fposts%2Fselect%2F50707069; _ym_isad=2; JSESSIONID=848B9D32A18E6E6FB3511EE706283972; __cf_bm=853SUGFt9x3vMWXOf07vJDtFWuswWO48Iw0.KUiUNbY-1773775736.9661338-1.0.1.1-_irSTO9beSXjHWTLS4_MXC1y8WDUGEEdoVrJWSkWBRQPgebXOKejz_K.cFAUctb8YJB_7CF9_6C1oC5KHAe7OhiPtj3vsrCwxqgLBjT3QwJOIxm6TT8LwEiEPAH5vlTI
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Cookie: _ym_uid=1766852614548077944; _ym_d=1766852614; visitorId=09fd28f7-09a6-4632-96b0-89e8e18dbb79; termsOfUseVersion=2; city=99; publicDomain=megapersonals.eu; mp_screen_client=1379x937; _gid=GA1.2.43589293.1776530576; _ym_isad=2; sid=9bbd881b919f199dae92082b4f0b2aa5; JSESSIONID=E0356D1EBF2F3E389D6E5CC67CDA8C7E; backURL=https%3A%2F%2Fmegapersonals.eu%2Fusers%2Fposts%2Flist; __cf_bm=DOIGEel4UPtAeOmszSRg_pUUV1k1YPnK7.rHnsQuhSY-1776557768.61697-1.0.1.1-7zeIw2HXtLT1C1woKLxD5ezKulZ0zkZbSzCMx1BBjQ82oM8yXy.zUvMEjYp0GSRtanpuraJkuoo9kNMW8dSTq3AaE6kHrsOPOCVsQVzmMpsWMOCJ2U.rAHHJX29WpEeb; _ga_7DGFPGNTB9=GS2.1.s1776556780$o5$g1$t1776557769$j60$l0$h0; _ga=GA1.2.1642405227.1766852621; _gat_gtag_UA_113349993_1=1
+Sec-Ch-Ua: "Not/A)Brand";v="8", "Chromium";v="137", "Google Chrome";v="137"
+Sec-Ch-Ua-Mobile: ?1
+Sec-Ch-Ua-Platform: "Android"
 Accept-Language: en-US,en;q=0.9
-Accept-Encoding: gzip, deflate, br
-Sec-Gpc: 1
-Referer: https://megapersonals.eu/users/posts/select/50707069
 Upgrade-Insecure-Requests: 1
-Sec-Fetch-Dest: document
-Sec-Fetch-Mode: navigate
+User-Agent: Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
 Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
 Sec-Fetch-User: ?1
-Priority: u=0, i
-Te: trailers`;
+Sec-Fetch-Dest: document
+Referer: https://megapersonals.eu/users/posts/list
+Accept-Encoding: gzip, deflate, br
+Priority: u=0, i`;
 
 // ==========================================
 // ⚙️ PARSER ENGINE
