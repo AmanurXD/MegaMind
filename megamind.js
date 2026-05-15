@@ -1,25 +1,24 @@
 const https = require('https');
 
 // ==========================================
-// 🔧 CONFIGURATION (PASTE YOUR RAW REQUEST HERE)
+// 🔧 CONFIGURATION
 // ==========================================
-const RAW_REQUEST = `GET /users/posts/bump/51320130 HTTP/2
-Host: megapersonals.eu
-Cookie: _ym_uid=1766852614548077944; _ym_d=1766852614; visitorId=09fd28f7-09a6-4632-96b0-89e8e18dbb79; termsOfUseVersion=2; publicDomain=megapersonals.eu; sid=9bbd881b919f199dae92082b4f0b2aa5; city=15; JSESSIONID=46ABF1450A9080B613730F0B2180529A; _gid=GA1.2.922259921.1778804188; __cf_bm=MHM9xpj6_qxGfngfKj0S2DkmQP_adzfX_p9Eyulv8R0-1778805869.2357795-1.0.1.1-iRc6Rkd19ejXln5e5aIwfs4xmcBjTXkVBukqTJZrFXuIuw2voUo9LsIR2Pk9dWjIyL3TtRZEPp_85NyIk8JU9zwGk5gcuQaiTjdHYIrn6RjqwXmDozUQm84MqhsFjkxJ; _ga=GA1.1.1642405227.1766852621; backURL=https%3A%2F%2Fmegapersonals.eu%2Fusers%2Fposts%2Fselect%2F51320130; _ga_7DGFPGNTB9=GS2.1.s1778804146$o10$g1$t1778805958$j33$l0$h0
-Sec-Ch-Ua: "Not/A)Brand";v="8", "Chromium";v="137", "Google Chrome";v="137"
-Sec-Ch-Ua-Mobile: ?1
-Sec-Ch-Ua-Platform: "Android"
-Accept-Language: en-US,en;q=0.9
-Upgrade-Insecure-Requests: 1
-User-Agent: Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
-Sec-Fetch-Site: same-origin
-Sec-Fetch-Mode: navigate
-Sec-Fetch-User: ?1
-Sec-Fetch-Dest: document
-Referer: https://megapersonals.eu/users/posts/select/51320130
-Accept-Encoding: gzip, deflate, br
-Priority: u=0, i`;
+function loadRawRequest() {
+    if (process.env.RAW_REQUEST_BASE64) {
+        return Buffer.from(process.env.RAW_REQUEST_BASE64.trim(), 'base64').toString('utf8');
+    }
+
+    if (process.env.RAW_REQUEST) {
+        return process.env.RAW_REQUEST.replace(/\\n/g, '\n').replace(/\\r/g, '\r');
+    }
+
+    console.log("❌ ERROR: Missing RAW_REQUEST_BASE64 environment variable.");
+    console.log("   Run: npm run encode-request -- raw-request.txt");
+    console.log("   Then paste the output into Railway/Render as RAW_REQUEST_BASE64.");
+    process.exit(1);
+}
+
+const RAW_REQUEST = loadRawRequest();
 
 // ==========================================
 // ⚙️ PARSER ENGINE
@@ -112,7 +111,7 @@ async function startMegaWorker() {
             // CASE 3: AUTH ERROR
             else if (res.location.includes("login") || res.status === 403 || res.status === 401) {
                 console.log("\n❌ FATAL: Cookies Expired or Logged Out.");
-                console.log("   -> Please update the RAW_REQUEST block with a fresh copy.");
+                console.log("   -> Please update the RAW_REQUEST_BASE64 environment variable with a fresh copy.");
                 process.exit(1);
             }
             

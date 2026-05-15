@@ -1,0 +1,6 @@
+.env
+.env.*
+!.env.example
+raw-request*.txt
+*.log
+node_modules/

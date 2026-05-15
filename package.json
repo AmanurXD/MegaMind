@@ -1,9 +1,10 @@
 {
-  "name": "MegaMind",
+  "name": "megamind",
   "version": "1.0.0",
   "private": true,
   "main": "megamind.js",
   "scripts": {
+    "encode-request": "node tools/encode-raw-request.js",
     "start": "node megamind.js"
   },
   "engines": {
