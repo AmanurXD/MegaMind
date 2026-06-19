@@ -9,8 +9,11 @@ For multiple posts, set one env var per capture:
 - `RAW_REQUEST_1_BASE64`
 - `RAW_REQUEST_2_BASE64`
 - `RAW_REQUEST_3_BASE64`
+- `CITY_1_LABEL`, `CITY_2_LABEL`, `CITY_3_LABEL` for readable log names
 
 Each value should be a base64 encoded raw bump request. The worker makes one dynamic pick each 15-minute success frame using a shuffled round-robin queue. With two posts, it gives both posts turns, but the first pick after each shuffle is random instead of a fixed city order.
+
+City labels are optional. If you do not set one, the worker logs the `city` cookie value from the capture, such as `city 15`.
 
 Older single-post envs still work:
 
@@ -52,6 +55,8 @@ docker build -t megamind:latest .
 docker run --rm \
   -e RAW_REQUEST_1_BASE64="<city 1 base64 request>" \
   -e RAW_REQUEST_2_BASE64="<city 2 base64 request>" \
+  -e CITY_1_LABEL="City 1" \
+  -e CITY_2_LABEL="City 2" \
   megamind:latest
 ```
 
@@ -59,9 +64,10 @@ docker run --rm \
 
 1. Open the app in ClawCloud Run.
 2. Edit `RAW_REQUEST_1_BASE64` for city 1 and `RAW_REQUEST_2_BASE64` for city 2.
-3. Paste the newest base64 capture into the matching variable.
-4. Save the env change.
-5. Redeploy or restart the app.
+3. Set `CITY_1_LABEL` and `CITY_2_LABEL` to readable city names.
+4. Paste the newest base64 capture into the matching variable.
+5. Save the env change.
+6. Redeploy or restart the app.
 
 You do not need to rebuild the image for new captures. Only the env value needs to change.
 

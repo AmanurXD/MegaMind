@@ -180,6 +180,51 @@ function parseRawRequest(raw) {
   return { method, path, postId, hostname, headers };
 }
 
+function parseCookieValue(cookieHeader, name) {
+  if (!cookieHeader) {
+    return null;
+  }
+
+  const parts = cookieHeader.split(';').map((part) => part.trim());
+
+  for (const part of parts) {
+    const separatorIndex = part.indexOf('=');
+
+    if (separatorIndex === -1) {
+      continue;
+    }
+
+    const key = part.substring(0, separatorIndex).trim();
+    const value = part.substring(separatorIndex + 1).trim();
+
+    if (key === name) {
+      return value || null;
+    }
+  }
+
+  return null;
+}
+
+function getPostLabel(capture, requestConfig) {
+  const cityOverride = process.env[`CITY_${capture.index}_LABEL`];
+
+  if (cityOverride) {
+    return cityOverride;
+  }
+
+  const cityCookie = parseCookieValue(requestConfig.headers.cookie, 'city');
+
+  if (cityCookie) {
+    return `city ${cityCookie}`;
+  }
+
+  return `post ${requestConfig.postId}`;
+}
+
+function describePost(post) {
+  return `${post.label} / post ${post.postId}`;
+}
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -196,6 +241,7 @@ function toPublicPost(post) {
   return {
     source: post.source,
     postId: post.postId,
+    label: post.label,
     hostname: post.hostname,
     path: post.path,
     phase: post.phase,
@@ -335,7 +381,8 @@ function buildPostsFromEnv() {
   const rawCaptures = readRawRequests();
   const seenPostIds = new Set();
 
-  return rawCaptures.map((capture) => {
+  return rawCaptures.map((capture, index) => {
+    capture.index = index + 1;
     const requestConfig = parseRawRequest(capture.raw);
 
     if (requestConfig.postId === 'UNKNOWN') {
@@ -351,6 +398,7 @@ function buildPostsFromEnv() {
     return {
       source: capture.source,
       postId: requestConfig.postId,
+      label: getPostLabel(capture, requestConfig),
       hostname: requestConfig.hostname,
       path: requestConfig.path,
       requestConfig,
@@ -405,7 +453,7 @@ async function runWorker() {
   process.on('SIGTERM', () => stopHandler('SIGTERM'));
 
   log(`MegaMind bumper started with ${posts.length} post(s).`);
-  log(`Post rotation: ${posts.map((post) => post.postId).join(', ')}`);
+  log(`Post rotation: ${posts.map(describePost).join(', ')}`);
   if (testConfig.enabled) {
     log(`Test mode enabled. Routing bump requests to http://${testConfig.host}:${testConfig.port}.`);
   }
@@ -428,7 +476,7 @@ async function runWorker() {
 
     try {
       post.lastAttemptAt = new Date().toISOString();
-      process.stdout.write(`[${timestamp()}] Attempting bump for post ${post.postId}... `);
+      process.stdout.write(`[${timestamp()}] Attempting bump for ${describePost(post)}... `);
 
       const response = await bumpPost(post.requestConfig, requestTimeoutMs, testConfig);
       post.lastStatus = response.status;
@@ -436,7 +484,7 @@ async function runWorker() {
       post.lastError = null;
 
       if (response.status === 302 && response.location.includes('success_publish')) {
-        console.log('SUCCESS.');
+        console.log(`SUCCESS for ${describePost(post)}.`);
         post.phase = 'cooldown';
         post.lastSuccessAt = new Date().toISOString();
         state.phase = 'cooldown';
@@ -448,7 +496,7 @@ async function runWorker() {
       }
 
       if (response.status === 302 && response.location.includes('/users/posts/list')) {
-        console.log('Too early.');
+        console.log(`Too early for ${describePost(post)}.`);
         post.phase = 'waiting_window';
         state.phase = 'waiting_window';
         refreshPublicState(posts, scheduler.queue);
@@ -463,12 +511,12 @@ async function runWorker() {
         response.status === 401 ||
         response.status === 403
       ) {
-        console.log('AUTH ERROR.');
+        console.log(`AUTH ERROR for ${describePost(post)}.`);
         post.phase = 'auth_error';
         post.disabled = true;
         post.lastError = 'Cookies expired or the session is no longer authenticated.';
         refreshPublicState(posts, scheduler.queue);
-        log(`Post ${post.postId} disabled: ${post.lastError}`);
+        log(`${describePost(post)} disabled: ${post.lastError}`);
         continue;
       }
 
@@ -486,7 +534,7 @@ async function runWorker() {
       post.lastError = message;
       state.phase = 'network_error';
       refreshPublicState(posts, scheduler.queue);
-      log(`Network or runtime error for post ${post.postId}: ${message}`);
+      log(`Network or runtime error for ${describePost(post)}: ${message}`);
       log(`Retrying dynamic pick in ${networkErrorRetryMs}ms.`);
       await sleep(networkErrorRetryMs);
       post.phase = 'ready';
