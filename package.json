@@ -4,7 +4,11 @@
   "private": true,
   "main": "megamind.js",
   "scripts": {
-    "start": "node megamind.js"
+    "start": "node megamind.js",
+    "format-request": "node format-raw-request.js",
+    "fake-server": "node fake-bump-server.js",
+    "test:local-mimic": "node test-local-mimic.js",
+    "test:long-mimic": "node test-long-mimic.js"
   },
   "engines": {
     "node": ">=18"
